@@ -1,9 +1,10 @@
 import os
+import sys
 from pathlib import Path, PureWindowsPath
 
 import bs4
 
-root = Path("/home/noebm/Downloads/kinect-firmware/KinectSDK-v1.8-Setup/")
+root = Path(sys.argv[1])
 file = root / "0"
 
 soup = bs4.BeautifulSoup(open(file).read())
