@@ -1,13 +1,34 @@
 import os
+import subprocess
 import sys
 from pathlib import Path, PureWindowsPath
 
 import bs4
 
-root = Path(sys.argv[1])
-file = root / "0"
+input_file = Path(sys.argv[1])
 
-soup = bs4.BeautifulSoup(open(file).read())
+if not input_file.is_file():
+    print("Input is not a file!")
+    exit(1)
+
+print(input_file)
+
+root = Path(input_file.parent, input_file.stem)
+print(root)
+root.mkdir(exist_ok=True)
+
+cmd = f"cabextract {input_file} -d {root}"
+result = subprocess.run(cmd, shell=True)
+
+if result.returncode != 0:
+    print(f"'{cmd}' failed: {result.stdout}")
+
+    exit(result.returncode)
+
+index = root / "0"
+
+with index.open() as f:
+    soup = bs4.BeautifulSoup(f.read())
 
 for payload in soup.find_all("payload"):
     maybe_filepath: str = payload.get("filepath")
