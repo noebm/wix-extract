@@ -28,7 +28,7 @@ if result.returncode != 0:
 index = root / "0"
 
 with index.open() as f:
-    soup = bs4.BeautifulSoup(f.read(), "lxml-xml")
+    soup = bs4.BeautifulSoup(f.read())
 
 os.remove(index)
 
