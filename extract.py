@@ -30,6 +30,8 @@ index = root / "0"
 with index.open() as f:
     soup = bs4.BeautifulSoup(f.read(), "lxml-xml")
 
+os.remove(index)
+
 for payload in soup.find_all("payload"):
     maybe_filepath: str = payload.get("filepath")
     maybe_sourcepath: str = payload.get("sourcepath")
