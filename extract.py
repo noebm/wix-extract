@@ -1,11 +1,21 @@
+import argparse
 import os
 import subprocess
-import sys
 from pathlib import Path, PureWindowsPath
 
 import bs4
 
-input_file = Path(sys.argv[1])
+parser = argparse.ArgumentParser(
+    # prog="wix-extract",
+    description="A commandline utility for extracting wix installers",
+)
+
+parser.add_argument("-d", "--destination", help="storage destination")
+parser.add_argument("filename")
+
+args = parser.parse_args()
+
+input_file = Path(args.filename)
 
 if not input_file.is_file():
     print("Input is not a file!")
@@ -13,7 +23,14 @@ if not input_file.is_file():
 
 print(input_file)
 
-root = Path(input_file.parent, input_file.stem)
+if args.destination:
+    root = Path(args.destination)
+else:
+    root = Path(input_file.stem)
+
+if not root.is_absolute():
+    root = input_file.parent / root
+
 print(root)
 root.mkdir(exist_ok=True)
 
