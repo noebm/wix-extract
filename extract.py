@@ -16,12 +16,8 @@ for payload in soup.find_all("payload"):
     if not (maybe_filepath and maybe_sourcepath):
         continue
 
-    print(f"{maybe_filepath=} {maybe_sourcepath=}")
-
     filepath = PureWindowsPath(maybe_filepath)
     sourcepath = PureWindowsPath(maybe_sourcepath)
-
-    print(f"{filepath=} {sourcepath=}")
 
     assert not filepath.is_absolute()
     assert not sourcepath.is_absolute()
@@ -29,8 +25,6 @@ for payload in soup.find_all("payload"):
     output_path = Path(root, *filepath.parts)
     input_path = Path(root, *sourcepath.parts)
 
-    print(f"{output_path=} {input_path=}")
-    
     if not input_path.exists():
         print(f"MISSING {input_path}")
         continue
