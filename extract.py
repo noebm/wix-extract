@@ -5,69 +5,71 @@ from pathlib import Path, PureWindowsPath
 
 import bs4
 
-parser = argparse.ArgumentParser(
-    # prog="wix-extract",
-    description="A commandline utility for extracting wix installers",
-)
 
-parser.add_argument("-d", "--destination", help="storage destination")
-parser.add_argument("filename")
+def main():
+    parser = argparse.ArgumentParser(
+        # prog="wix-extract",
+        description="A commandline utility for extracting wix installers",
+    )
 
-args = parser.parse_args()
+    parser.add_argument("-d", "--destination", help="storage destination")
+    parser.add_argument("filename")
 
-input_file = Path(args.filename)
+    args = parser.parse_args()
 
-if not input_file.is_file():
-    print("Input is not a file!")
-    exit(1)
+    input_file = Path(args.filename)
 
-print(input_file)
+    if not input_file.is_file():
+        print("Input is not a file!")
+        exit(1)
 
-if args.destination:
-    root = Path(args.destination)
-else:
-    root = Path(input_file.stem)
+    print(input_file)
 
-if not root.is_absolute():
-    root = input_file.parent / root
+    if args.destination:
+        root = Path(args.destination)
+    else:
+        root = Path(input_file.stem)
 
-print(root)
-root.mkdir(exist_ok=True)
+    if not root.is_absolute():
+        root = input_file.parent / root
 
-cmd = f"cabextract {input_file} -d {root}"
-result = subprocess.run(cmd, shell=True)
+    print(root)
+    root.mkdir(exist_ok=True)
 
-if result.returncode != 0:
-    print(f"'{cmd}' failed: {result.stdout}")
+    cmd = ["cabextract", str(input_file), "-d", str(root)]
+    result = subprocess.run(cmd, stdout=subprocess.DEVNULL)
 
-    exit(result.returncode)
+    if result.returncode != 0:
+        print(f"'{cmd}' failed: {result.stdout}")
 
-index = root / "0"
+        exit(result.returncode)
 
-with index.open() as f:
-    soup = bs4.BeautifulSoup(f.read())
+    index = root / "0"
 
-os.remove(index)
+    with index.open() as f:
+        soup = bs4.BeautifulSoup(f.read(), features="lxml")
 
-for payload in soup.find_all("payload"):
-    maybe_filepath: str = payload.get("filepath")
-    maybe_sourcepath: str = payload.get("sourcepath")
-    # size = payload.get("size")
-    # hash = payload.hash("hash")
-    if not (maybe_filepath and maybe_sourcepath):
-        continue
+    os.remove(index)
 
-    filepath = PureWindowsPath(maybe_filepath)
-    sourcepath = PureWindowsPath(maybe_sourcepath)
+    for payload in soup.find_all("payload"):
+        maybe_filepath: str = payload.get("filepath")
+        maybe_sourcepath: str = payload.get("sourcepath")
+        # size = payload.get("size")
+        # hash = payload.hash("hash")
+        if not (maybe_filepath and maybe_sourcepath):
+            continue
 
-    assert not filepath.is_absolute()
-    assert not sourcepath.is_absolute()
+        filepath = PureWindowsPath(maybe_filepath)
+        sourcepath = PureWindowsPath(maybe_sourcepath)
 
-    output_path = Path(root, *filepath.parts)
-    input_path = Path(root, *sourcepath.parts)
+        assert not filepath.is_absolute()
+        assert not sourcepath.is_absolute()
 
-    if not input_path.exists():
-        print(f"MISSING {input_path}")
-        continue
+        output_path = Path(root, *filepath.parts)
+        input_path = Path(root, *sourcepath.parts)
 
-    os.renames(input_path, output_path)
+        if not input_path.exists():
+            print(f"MISSING {input_path}")
+            continue
+
+        os.renames(input_path, output_path)

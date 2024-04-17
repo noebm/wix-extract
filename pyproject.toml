@@ -1,0 +1,12 @@
+
+[project]
+name = "wix-extract"
+version = "0.0.1"
+
+dependencies = [
+  "beautifulsoup4",
+  "lxml",
+]
+
+[project.scripts]
+wix-extract = "extract:main"
