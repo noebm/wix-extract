@@ -93,6 +93,7 @@ def process_archives(root: Path):
                 logging.warning(f"Missing input path: {input_path}")
                 continue
 
+            output_path.parent.mkdir(parents=True, exist_ok=True)
             input_path.rename(output_path)
 
         index.unlink()
