@@ -10,12 +10,13 @@
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
     nativeDependencies = [pkgs.cabextract];
+    python = pkgs.python3;
+    project = pyproject-nix.lib.project.loadPyproject {
+      projectRoot = ./.;
+    };
 
     package = let
-      project = pyproject-nix.lib.project.loadPyproject {
-        projectRoot = ./.;
-      };
-      packageAttrs = project.renderers.buildPythonPackage {python = pkgs.python3;};
+      packageAttrs = project.renderers.buildPythonPackage {inherit python;};
     in
       pkgs.python3Packages.buildPythonPackage (
         packageAttrs // {dependencies = packageAttrs.dependencies ++ nativeDependencies;}
@@ -26,5 +27,10 @@
       type = "app";
       program = "${package}/bin/${package.pname}";
     };
+    devShells.${system}.default = let
+      pythonEnv = python.withPackages (project.renderers.withPackages {inherit python;});
+    in
+      # Create a devShell like normal.
+      pkgs.mkShell {packages = [pythonEnv] ++ nativeDependencies;};
   };
 }
