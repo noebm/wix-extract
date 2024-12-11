@@ -73,3 +73,7 @@ def main():
             continue
 
         os.renames(input_path, output_path)
+
+
+if __name__ == "__main__":
+    main()
